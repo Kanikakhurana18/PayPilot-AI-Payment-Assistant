@@ -33,6 +33,8 @@ export const createPayPalOrder = async (req, res) => {
     }
 
     const accessToken = await getPayPalAccessToken();
+    const frontendUrl =
+      process.env.FRONTEND_URL || "http://localhost:5173";
 
     const response = await axios.post(
       `${process.env.PAYPAL_API_BASE}/v2/checkout/orders`,
@@ -49,8 +51,8 @@ export const createPayPalOrder = async (req, res) => {
           },
         ],
         application_context: {
-          return_url: "http://localhost:5173/payment/success",
-          cancel_url: "http://localhost:5173/payment/cancel",
+          return_url: `${frontendUrl}/payment/success`,
+          cancel_url: `${frontendUrl}/payment/cancel`,
           user_action: "PAY_NOW",
         },
       },
@@ -139,14 +141,14 @@ export const capturePayPalOrder = async (req, res) => {
       }
     );
 
-    const capture =response.data.purchase_units?.[0]?.payments?.captures?.[0];
+    const capture = response.data.purchase_units?.[0]?.payments?.captures?.[0];
 
     const isValidCapture =
       response.data.id === orderId &&
       capture?.status === "COMPLETED" &&
       capture?.amount?.currency_code === paymentRecord.currency &&
       Number(capture?.amount?.value).toFixed(2) ===
-        Number(paymentRecord.amount).toFixed(2);
+      Number(paymentRecord.amount).toFixed(2);
 
     if (!isValidCapture) {
       return res.status(400).json({
