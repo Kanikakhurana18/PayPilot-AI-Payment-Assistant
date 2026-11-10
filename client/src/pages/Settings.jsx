@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   User,
@@ -11,10 +10,7 @@ import {
   Moon,
   CheckCircle2,
   RefreshCw,
-  ShieldCheck,
-  Globe,
-  Mail,
-  BriefcaseBusiness,
+  ShieldCheck
 } from "lucide-react";
 
 function Settings({ darkMode, toggleTheme }) {
@@ -68,7 +64,6 @@ function Settings({ darkMode, toggleTheme }) {
   return (
     <div className="space-y-7 pb-10">
 
-      {/* PAGE HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
@@ -88,7 +83,6 @@ function Settings({ darkMode, toggleTheme }) {
         </button>
       </div>
 
-      {/* SAVE SUCCESS */}
       {saved && (
         <div className="flex items-center gap-2 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm">
           <CheckCircle2 size={18} />
@@ -96,7 +90,6 @@ function Settings({ darkMode, toggleTheme }) {
         </div>
       )}
 
-      {/* PROFILE */}
       <section className={sectionClass}>
         <div className="flex items-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
@@ -148,7 +141,6 @@ function Settings({ darkMode, toggleTheme }) {
         </div>
       </section>
 
-      {/* BUSINESS PREFERENCES */}
       <section className={sectionClass}>
         <div className="flex items-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center">
@@ -199,7 +191,6 @@ function Settings({ darkMode, toggleTheme }) {
         </div>
       </section>
 
-      {/* APPEARANCE */}
       <section className={sectionClass}>
         <div className="flex items-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
@@ -258,7 +249,6 @@ function Settings({ darkMode, toggleTheme }) {
         </div>
       </section>
 
-      {/* PAYMENT SETTINGS */}
       <section className={sectionClass}>
         <div className="flex items-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
@@ -301,7 +291,6 @@ function Settings({ darkMode, toggleTheme }) {
         </p>
       </section>
 
-      {/* DATA MANAGEMENT */}
       <section className={sectionClass}>
         <div className="flex items-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
@@ -337,7 +326,6 @@ function Settings({ darkMode, toggleTheme }) {
         </div>
       </section>
 
-      {/* SECURITY NOTE */}
       <div className="flex items-start gap-3 p-4 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20">
         <ShieldCheck className="text-indigo-500 shrink-0 mt-0.5" size={19} />
         <div>

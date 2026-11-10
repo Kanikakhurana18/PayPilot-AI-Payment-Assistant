@@ -1,12 +1,15 @@
-
 import mongoose from "mongoose";
 
 const invoiceSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
     invoiceNumber: {
       type: String,
       required: true,
-      unique: true,
     },
 
     customer: {
@@ -42,6 +45,8 @@ const invoiceSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+invoiceSchema.index({ user: 1, invoiceNumber: 1 }, { unique: true });
 
 const Invoice = mongoose.model("Invoice", invoiceSchema);
 

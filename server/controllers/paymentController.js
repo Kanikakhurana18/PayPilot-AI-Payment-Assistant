@@ -1,5 +1,5 @@
-
 import axios from "axios";
+import mongoose from "mongoose";
 import Invoice from "../models/invoice.js";
 import Payment from "../models/payment.js";
 import getPayPalAccessToken from "../services/paypalService.js";
@@ -7,9 +7,17 @@ import getPayPalAccessToken from "../services/paypalService.js";
 export const createPayPalOrder = async (req, res) => {
   try {
     const { invoiceId } = req.body;
+    if (!mongoose.isValidObjectId(invoiceId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid invoice ID",
+      });
+    }
 
-    const invoice = await Invoice.findById(invoiceId).populate("customer");
-
+    const invoice = await Invoice.findOne({
+      _id: invoiceId,
+      user: req.user._id,
+    }).populate("customer");
     if (!invoice) {
       return res.status(404).json({
         success: false,
@@ -57,6 +65,7 @@ export const createPayPalOrder = async (req, res) => {
     const order = response.data;
 
     await Payment.create({
+      user: req.user._id,
       invoice: invoice._id,
       customer: invoice.customer._id,
       paypalOrderId: order.id,
@@ -68,7 +77,6 @@ export const createPayPalOrder = async (req, res) => {
     const approvalUrl = order.links.find(
       (link) => link.rel === "approve"
     )?.href;
-
     res.status(201).json({
       success: true,
       message: "PayPal order created",
@@ -88,23 +96,40 @@ export const createPayPalOrder = async (req, res) => {
   }
 };
 
-
-
 export const capturePayPalOrder = async (req, res) => {
   try {
     const { orderId } = req.body;
 
-    if (!orderId) {
+    if (!orderId || typeof orderId !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Order ID is required",
+        message: "Valid order ID is required",
+      });
+    }
+
+    const paymentRecord = await Payment.findOne({
+      paypalOrderId: orderId,
+      user: req.user._id,
+    });
+
+    if (!paymentRecord) {
+      return res.status(404).json({
+        success: false,
+        message: "Payment order not found",
+      });
+    }
+
+    if (paymentRecord.status === "Completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Payment has already been completed",
       });
     }
 
     const accessToken = await getPayPalAccessToken();
 
     const response = await axios.post(
-      `${process.env.PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`,
+      `${process.env.PAYPAL_API_BASE}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`,
       {},
       {
         headers: {
@@ -114,23 +139,47 @@ export const capturePayPalOrder = async (req, res) => {
       }
     );
 
-    if (response.data.status === "COMPLETED") {
-      const payment = await Payment.findOneAndUpdate(
-        { paypalOrderId: orderId },
-        { status: "Completed" },
-        { new: true }
-      );
+    const capture =response.data.purchase_units?.[0]?.payments?.captures?.[0];
 
-      if (payment) {
-        await Invoice.findByIdAndUpdate(payment.invoice, {
-          status: "Paid",
-        });
-      }
+    const isValidCapture =
+      response.data.id === orderId &&
+      capture?.status === "COMPLETED" &&
+      capture?.amount?.currency_code === paymentRecord.currency &&
+      Number(capture?.amount?.value).toFixed(2) ===
+        Number(paymentRecord.amount).toFixed(2);
+
+    if (!isValidCapture) {
+      return res.status(400).json({
+        success: false,
+        message: "PayPal payment verification failed",
+      });
     }
+
+    await Payment.findOneAndUpdate(
+      {
+        _id: paymentRecord._id,
+        user: req.user._id,
+      },
+      {
+        status: "Completed",
+      },
+      { new: true }
+    );
+
+    await Invoice.findOneAndUpdate(
+      {
+        _id: paymentRecord.invoice,
+        user: req.user._id,
+      },
+      {
+        status: "Paid",
+      },
+      { new: true }
+    );
 
     res.status(200).json({
       success: true,
-      message: "Payment captured successfully",
+      message: "Payment captured and verified successfully",
       data: response.data,
     });
   } catch (error) {
@@ -146,11 +195,11 @@ export const capturePayPalOrder = async (req, res) => {
   }
 };
 
-
-
 export const getPayments = async (req, res) => {
   try {
-    const payments = await Payment.find()
+    const payments = await Payment.find({
+      user: req.user._id,
+    })
       .populate("invoice")
       .populate("customer")
       .sort({ createdAt: -1 });
@@ -161,7 +210,6 @@ export const getPayments = async (req, res) => {
     });
   } catch (error) {
     console.error("Get payments error:", error.message);
-
     res.status(500).json({
       success: false,
       message: "Failed to fetch payments",

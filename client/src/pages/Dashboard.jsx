@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
@@ -51,14 +50,11 @@ export default function Dashboard() {
   const [payments, setPayments] = useState([]);
   const [aiInsight, setAiInsight] = useState("");
   const [reminders, setReminders] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [reminderDrafts, setReminderDrafts] = useState({});
   const [generatingReminder, setGeneratingReminder] = useState(null);
 
-  // Fetch dashboard data
   const fetchDashboardData = async () => {
     setLoading(true);
     setError("");
@@ -68,11 +64,9 @@ export default function Dashboard() {
         axios.get(`${API}/invoices`),
         axios.get(`${API}/payments`),
       ]);
-
       setInvoices(getArray(invoiceRes.data, "invoices"));
       setPayments(getArray(paymentRes.data, "payments"));
 
-      // Fetch reminders independently
       try {
         const reminderRes = await axios.get(`${API}/ai/reminders`);
 
@@ -82,7 +76,6 @@ export default function Dashboard() {
         setReminders([]);
       }
 
-      // Fetch AI insights independently
       try {
         const aiRes = await axios.get(`${API}/ai/insights`);
         setAiInsight(aiRes.data?.insights || "");
@@ -104,13 +97,11 @@ export default function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  // Completed payments
   const completedPayments = useMemo(
     () => payments.filter((payment) => payment.status === "Completed"),
     [payments]
   );
 
-  // Total revenue
   const totalRevenue = useMemo(
     () =>
       completedPayments.reduce(
@@ -120,7 +111,6 @@ export default function Dashboard() {
     [completedPayments]
   );
 
-  // Pending and overdue invoices
   const pendingInvoices = useMemo(
     () =>
       invoices.filter((invoice) =>
@@ -129,7 +119,6 @@ export default function Dashboard() {
     [invoices]
   );
 
-  // Pending amount
   const pendingAmount = useMemo(
     () =>
       pendingInvoices.reduce(
@@ -139,7 +128,6 @@ export default function Dashboard() {
     [pendingInvoices]
   );
 
-  // Recent transactions
   const recentPayments = useMemo(
     () =>
       [...payments]
@@ -152,7 +140,6 @@ export default function Dashboard() {
     [payments]
   );
 
-  // Sort reminders by due date
   const sortedReminders = useMemo(
     () =>
       [...reminders].sort(
@@ -163,7 +150,6 @@ export default function Dashboard() {
     [reminders]
   );
 
-  // Payment health
   const hasOverdue =
     reminders.some((reminder) => reminder.priority === "Overdue") ||
     pendingInvoices.some((invoice) => invoice.status === "Overdue");
@@ -174,7 +160,6 @@ export default function Dashboard() {
       ? "Payments Pending"
       : "Looking Good";
 
-  // Reminder counts
   const overdueCount = reminders.filter(
     (reminder) => reminder.priority === "Overdue"
   ).length;
@@ -189,7 +174,6 @@ export default function Dashboard() {
 
   const nextReminder = sortedReminders[0];
 
-  // Generate AI payment reminder
   const generateReminder = async (reminder) => {
     if (!reminder?.invoiceId) return;
 
@@ -233,7 +217,6 @@ Rules:
     }
   };
 
-  // Copy generated reminder
   const copyReminder = async (invoiceId) => {
     const draft = reminderDrafts[invoiceId];
 
@@ -251,11 +234,10 @@ Rules:
   return (
     <div className="w-full min-w-0 space-y-5 sm:space-y-6">
 
-      {/* PAGE HEADER */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-            Business Overview 👋
+            Business Overview 
           </h1>
 
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -287,7 +269,6 @@ Rules:
         </div>
       </div>
 
-      {/* ERROR */}
       {error && (
         <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
           <AlertCircle size={17} className="mt-0.5 shrink-0" />
@@ -295,7 +276,6 @@ Rules:
         </div>
       )}
 
-      {/* STAT CARDS */}
       <div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
           title="Total Revenue"
@@ -334,7 +314,6 @@ Rules:
         />
       </div>
 
-      {/* CHARTS + AI INSIGHTS */}
       <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-12 xl:items-stretch">
 
         <div className="min-w-0 lg:col-span-2 xl:col-span-5">
@@ -345,8 +324,7 @@ Rules:
           <PaymentStatusChart payments={payments} />
         </div>
 
-        {/* AI BUSINESS INSIGHTS */}
-        <div className="relative flex min-h-[300px] min-w-0 flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-[#5546df] via-[#392bb5] to-[#21175e] p-5 text-white shadow-sm sm:p-6 lg:col-span-1 xl:col-span-4">
+        <div className="relative flex min-h-75 min-w-0 flex-col overflow-hidden rounded-2xl bg-linear-to-br from-[#5546df] via-[#392bb5] to-[#21175e] p-5 text-white shadow-sm sm:p-6 lg:col-span-1 xl:col-span-4">
 
           <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-16 -left-12 h-40 w-40 rounded-full bg-indigo-300/10 blur-3xl" />
@@ -367,7 +345,6 @@ Rules:
             </span>
           </div>
 
-          {/* PAYMENT HEALTH */}
           <div className="relative z-10 mt-6 rounded-xl border border-white/15 bg-white/10 p-4">
             <div className="flex items-center gap-2 text-indigo-100">
               <TrendingUp size={16} className="text-emerald-300" />
@@ -376,7 +353,7 @@ Rules:
               </span>
             </div>
 
-            <p className="mt-2 break-words text-xl font-bold">
+            <p className="mt-2 wrap-break-word text-xl font-bold">
               {loading ? "Analyzing..." : paymentHealth}
             </p>
 
@@ -389,14 +366,13 @@ Rules:
             </p>
           </div>
 
-          {/* AI RECOMMENDATION */}
           <div className="relative z-10 mt-5 flex-1">
             <p className="flex items-center gap-2 text-xs font-bold text-indigo-200">
               <Sparkles size={14} />
               AI Recommendation
             </p>
 
-            <p className="mt-2 break-words text-sm leading-6 text-white/95">
+            <p className="mt-2 wrap-break-word text-sm leading-6 text-white/95">
               {loading
                 ? "Analyzing your payment data..."
                 : aiInsight ||
@@ -414,10 +390,8 @@ Rules:
         </div>
       </div>
 
-      {/* RECENT TRANSACTIONS + REMINDERS */}
       <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-12">
 
-        {/* RECENT TRANSACTIONS */}
         <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#151c2e] xl:col-span-8">
 
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 dark:border-slate-800 sm:px-5">
@@ -449,7 +423,7 @@ Rules:
             </p>
           ) : (
             <>
-              {/* MOBILE TRANSACTION CARDS */}
+
               <div className="divide-y divide-slate-100 dark:divide-slate-800 sm:hidden">
                 {recentPayments.map((payment) => (
                   <div key={payment._id} className="p-4">
@@ -490,9 +464,8 @@ Rules:
                 ))}
               </div>
 
-              {/* TABLET AND DESKTOP TABLE */}
               <div className="hidden w-full overflow-x-auto sm:block">
-                <table className="w-full min-w-[500px] text-left text-sm">
+                <table className="w-full min-w-125 text-left text-sm">
                   <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 dark:bg-slate-800/50">
                     <tr>
                       <th className="px-5 py-3 font-semibold">Customer</th>
@@ -544,8 +517,7 @@ Rules:
           )}
         </div>
 
-        {/* AI PAYMENT REMINDERS */}
-        <div className="relative flex min-h-[280px] min-w-0 flex-col overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-purple-100 p-5 dark:border-slate-800 dark:from-[#191b38] dark:to-[#211b42] xl:col-span-4">
+        <div className="relative flex min-h-70 min-w-0 flex-col overflow-hidden rounded-2xl border border-indigo-100 bg-linear-to-br from-indigo-50 to-purple-100 p-5 dark:border-slate-800 dark:from-[#191b38] dark:to-[#211b42] xl:col-span-4">
 
           <div className="flex items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-400">
@@ -558,7 +530,6 @@ Rules:
             </span>
           </div>
 
-          {/* REMINDER COUNTS */}
           <div className="mt-5 grid grid-cols-3 gap-2">
             <div className="min-w-0 rounded-xl border border-red-100 bg-white/70 p-2.5 dark:border-red-500/20 dark:bg-white/5">
               <p className="text-[10px] font-medium text-red-600 dark:text-red-400">
@@ -591,7 +562,6 @@ Rules:
             </div>
           </div>
 
-          {/* NEXT PAYMENT */}
           <div className="mt-4 flex-1">
             {loading ? (
               <p className="text-xs text-slate-500">
@@ -614,7 +584,7 @@ Rules:
                       {nextReminder.customer}
                     </p>
 
-                    <p className="mt-1 break-words text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="mt-1 wrap-break-word text-[11px] text-slate-500 dark:text-slate-400">
                       {nextReminder.invoiceNumber} ·{" "}
                       {money(nextReminder.amount)}
                     </p>
@@ -662,7 +632,7 @@ Rules:
 
                 {reminderDrafts[nextReminder.invoiceId] && (
                   <div className="mt-3 max-h-28 overflow-y-auto rounded-lg bg-white/70 p-3 dark:bg-white/5">
-                    <p className="whitespace-pre-wrap break-words text-[11px] leading-5 text-slate-700 dark:text-slate-200">
+                    <p className="whitespace-pre-wrap wrap-break-word text-[11px] leading-5 text-slate-700 dark:text-slate-200">
                       {reminderDrafts[nextReminder.invoiceId]}
                     </p>
                   </div>

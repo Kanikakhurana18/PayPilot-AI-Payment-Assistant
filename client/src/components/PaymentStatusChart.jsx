@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import {
   ResponsiveContainer,
@@ -48,11 +47,11 @@ export default function PaymentStatusChart({ payments = [] }) {
       </div>
 
       {total === 0 ? (
-        <div className="flex h-[245px] items-center justify-center text-sm text-slate-500">
+        <div className="flex h-61.25 items-center justify-center text-sm text-slate-500">
           No payment data available yet.
         </div>
       ) : (
-        <div className="relative mt-2 h-[245px] w-full">
+        <div className="relative mt-2 h-61.25 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie

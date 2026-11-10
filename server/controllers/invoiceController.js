@@ -1,4 +1,3 @@
-
 import Invoice from "../models/invoice.js";
 import Customer from "../models/customer.js";
 
@@ -10,7 +9,6 @@ export const createInvoice = async (req, res) => {
       amount,
       dueDate,
     } = req.body;
-
     if (!customerId || !description || !amount || !dueDate) {
       return res.status(400).json({
         success: false,
@@ -18,7 +16,10 @@ export const createInvoice = async (req, res) => {
       });
     }
 
-    const customer = await Customer.findById(customerId);
+    const customer = await Customer.findOne({
+      _id: customerId,
+      user: req.user._id,
+    });
 
     if (!customer) {
       return res.status(404).json({
@@ -28,29 +29,32 @@ export const createInvoice = async (req, res) => {
     }
 
     const invoice = await Invoice.create({
+      user: req.user._id,
       invoiceNumber: `INV-${Date.now()}`,
-      customer: customerId,
+      customer: customer._id,
       description,
       amount,
       dueDate,
     });
-
     res.status(201).json({
       success: true,
       message: "Invoice created successfully",
       invoice,
     });
   } catch (error) {
+    console.error("Create invoice error:", error.message);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Failed to create invoice",
     });
   }
 };
 
 export const getInvoices = async (req, res) => {
   try {
-    const invoices = await Invoice.find()
+    const invoices = await Invoice.find({
+      user: req.user._id,
+    })
       .populate("customer")
       .sort({ createdAt: -1 });
 
@@ -59,9 +63,11 @@ export const getInvoices = async (req, res) => {
       invoices,
     });
   } catch (error) {
+    console.error("Get invoices error:", error.message);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Failed to fetch invoices",
     });
   }
 };

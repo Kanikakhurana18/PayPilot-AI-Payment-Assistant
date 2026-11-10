@@ -6,13 +6,13 @@ import customerRoutes from "./routes/customerRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
-
+import authRoutes from "./routes/authRoutes.js";
 dotenv.config();
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
+app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/payments", paymentRoutes);

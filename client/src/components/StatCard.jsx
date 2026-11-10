@@ -24,7 +24,7 @@ export default function StatCard({
             {title}
           </span>
 
-          <h3 className="break-words text-lg font-bold leading-6 text-slate-900 dark:text-white sm:text-2xl sm:leading-8">
+          <h3 className="wrap-break-word text-lg font-bold leading-6 text-slate-900 dark:text-white sm:text-2xl sm:leading-8">
             {amount}
           </h3>
         </div>
@@ -38,7 +38,7 @@ export default function StatCard({
           </span>
         )}
 
-        <span className="break-words font-medium leading-4 text-slate-400">
+        <span className="wrap-break-word font-medium leading-4 text-slate-400">
           {changeText}
         </span>
       </div>

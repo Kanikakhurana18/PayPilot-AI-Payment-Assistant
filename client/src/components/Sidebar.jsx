@@ -1,4 +1,3 @@
-
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -9,6 +8,7 @@ import {
   Bot,
   Settings,
   Send,
+  Target,
 } from "lucide-react";
 
 const menuItems = [
@@ -17,14 +17,11 @@ const menuItems = [
   { name: "Payments", path: "/payments", icon: CreditCard },
   { name: "Customers", path: "/customers", icon: Users },
   { name: "Analytics", path: "/analytics", icon: ChartNoAxesCombined },
+  { name: "Payment Recovery", path: "/payment-recovery", icon: Target },
   { name: "AI Assistant", path: "/ai-assistant", icon: Bot },
 ];
 
-function Sidebar({
-  onNavigate,
-  collapsed = false,
-  onToggle,
-}) {
+function Sidebar({ onNavigate, collapsed = false, onToggle }) {
   const linkStyle = ({ isActive }) =>
     `flex items-center rounded-xl py-3 text-sm font-medium transition-all duration-200
     ${collapsed ? "justify-center px-0" : "gap-3.5 px-4"}
@@ -40,8 +37,8 @@ function Sidebar({
       bg-white text-gray-800 dark:bg-[#11111b] dark:text-white
       ${collapsed ? "px-3" : "px-5"}`}
     >
-      {/* Logo - Click to collapse / expand */}
-      <div className="flex h-[88px] shrink-0 items-center">
+
+      <div className="flex h-22 shrink-0 items-center">
         <button
           type="button"
           onClick={onToggle}
@@ -62,7 +59,6 @@ function Sidebar({
         </button>
       </div>
 
-      {/* Navigation - Scrollable area */}
       <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto py-3">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -86,7 +82,6 @@ function Sidebar({
         })}
       </nav>
 
-      {/* Bottom section - Settings always at bottom */}
       <div className="mt-auto shrink-0 border-t border-gray-200 py-4 dark:border-white/10">
         <NavLink
           to="/settings"

@@ -1,31 +1,40 @@
-
 import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
     invoice: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Invoice",
       required: true,
     },
+
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
       required: true,
     },
+
     paypalOrderId: {
       type: String,
       unique: true,
       sparse: true,
     },
+
     amount: {
       type: Number,
       required: true,
     },
+
     currency: {
       type: String,
       default: "USD",
     },
+
     status: {
       type: String,
       enum: ["Created", "Completed", "Failed"],

@@ -21,6 +21,8 @@ import {
   RefreshCw,
   AlertCircle,
   Users,
+  Sparkles,
+  LoaderCircle,
 } from "lucide-react";
 
 const API_URL = "http://localhost:8000/api";
@@ -30,7 +32,7 @@ const formatCurrency = (amount) =>
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
-  }).format(amount || 0);
+  }).format(Number(amount) || 0);
 
 const STATUS_COLORS = {
   Paid: "#6366f1",
@@ -42,8 +44,11 @@ export default function Analytics() {
   const [invoices, setInvoices] = useState([]);
   const [payments, setPayments] = useState([]);
   const [period, setPeriod] = useState("6M");
+  const [forecastPeriod, setForecastPeriod] = useState("30D");
   const [loading, setLoading] = useState(true);
+  const [forecastLoading, setForecastLoading] = useState(false);
   const [error, setError] = useState("");
+  const [aiForecastInsight, setAiForecastInsight] = useState("");
 
   const fetchAnalytics = async () => {
     try {
@@ -55,12 +60,16 @@ export default function Analytics() {
         axios.get(`${API_URL}/payments`),
       ]);
 
-      const invoiceData = invoiceRes.data.invoices || invoiceRes.data;
-      const paymentData = paymentRes.data.payments || paymentRes.data;
+      const invoiceData =
+        invoiceRes.data.invoices || invoiceRes.data;
+
+      const paymentData =
+        paymentRes.data.payments || paymentRes.data;
 
       setInvoices(Array.isArray(invoiceData) ? invoiceData : []);
       setPayments(Array.isArray(paymentData) ? paymentData : []);
     } catch (err) {
+      console.error("Analytics Error:", err);
       setError("Unable to load analytics. Please try again.");
     } finally {
       setLoading(false);
@@ -147,7 +156,7 @@ export default function Analytics() {
         (entry) =>
           entry.year === date.getFullYear() &&
           entry.month ===
-            date.toLocaleString("en-US", { month: "short" })
+          date.toLocaleString("en-US", { month: "short" })
       );
 
       if (item) {
@@ -204,13 +213,185 @@ export default function Analytics() {
           !Number.isNaN(date.getTime()) &&
           date.getFullYear() === month.year &&
           date.toLocaleString("en-US", { month: "short" }) ===
-            month.month
+          month.month
         );
       }).length;
 
       return { ...month, transactions: count };
     });
   }, [revenueData, completedPayments]);
+
+  const forecastData = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const days = forecastPeriod === "7D" ? 7 : 30;
+
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + days);
+
+    const upcomingInvoices = invoices.filter((invoice) => {
+      if (
+        invoice.status === "Paid" ||
+        !invoice.dueDate
+      ) {
+        return false;
+      }
+
+      const dueDate = new Date(invoice.dueDate);
+
+      if (Number.isNaN(dueDate.getTime())) return false;
+
+      dueDate.setHours(0, 0, 0, 0);
+
+      return dueDate >= today && dueDate < endDate;
+    });
+
+    const overdueAmount = invoices.reduce((sum, invoice) => {
+      if (invoice.status === "Paid" || !invoice.dueDate) {
+        return sum;
+      }
+
+      const dueDate = new Date(invoice.dueDate);
+
+      if (Number.isNaN(dueDate.getTime())) return sum;
+
+      dueDate.setHours(0, 0, 0, 0);
+
+      return dueDate < today
+        ? sum + Number(invoice.amount || 0)
+        : sum;
+    }, 0);
+
+    const bucketCount = forecastPeriod === "7D" ? 7 : 5;
+
+    const buckets = Array.from(
+      { length: bucketCount },
+      (_, index) => {
+        const start = new Date(today);
+
+        if (forecastPeriod === "7D") {
+          start.setDate(today.getDate() + index);
+        } else {
+          start.setDate(today.getDate() + index * 7);
+        }
+
+        const end = new Date(start);
+
+        if (forecastPeriod === "7D") {
+          end.setDate(start.getDate() + 1);
+        } else {
+          end.setDate(start.getDate() + 7);
+        }
+
+        if (forecastPeriod === "30D" && index === 4) {
+          end.setTime(endDate.getTime());
+        }
+
+        const amount = upcomingInvoices.reduce(
+          (sum, invoice) => {
+            const dueDate = new Date(invoice.dueDate);
+            dueDate.setHours(0, 0, 0, 0);
+
+            return dueDate >= start && dueDate < end
+              ? sum + Number(invoice.amount || 0)
+              : sum;
+          },
+          0
+        );
+
+        return {
+          period:
+            forecastPeriod === "7D"
+              ? start.toLocaleDateString("en-US", {
+                day: "numeric",
+                month: "short",
+              })
+              : `Week ${index + 1}`,
+          amount,
+        };
+      }
+    );
+
+    const totalExpected = upcomingInvoices.reduce(
+      (sum, invoice) =>
+        sum + Number(invoice.amount || 0),
+      0
+    );
+
+    return {
+      buckets,
+      upcomingInvoices,
+      totalExpected,
+      overdueAmount,
+      invoiceCount: upcomingInvoices.length,
+    };
+  }, [invoices, forecastPeriod]);
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (!invoices.length) {
+      setAiForecastInsight(
+        "Create invoices with upcoming due dates to generate a cash flow forecast."
+      );
+      return;
+    }
+
+    let cancelled = false;
+
+    const generateInsight = async () => {
+      setForecastLoading(true);
+      setAiForecastInsight("");
+
+      try {
+        const response = await axios.post(`${API_URL}/ai/chat`, {
+          message: `Analyze this cash flow forecast for the next ${forecastPeriod === "7D" ? "7 days" : "30 days"
+            }.
+
+Expected collections: ${formatCurrency(forecastData.totalExpected)}
+Upcoming unpaid invoices: ${forecastData.invoiceCount}
+Overdue outstanding amount: ${formatCurrency(forecastData.overdueAmount)}
+
+Give a short business insight in 2-3 sentences. Explain expected incoming payments and one practical action. Do not treat unpaid invoices as guaranteed revenue. Do not invent data.`,
+        });
+
+        if (!cancelled) {
+          setAiForecastInsight(
+            response.data.reply ||
+            response.data.message ||
+            response.data.response ||
+            "No AI insight was returned."
+          );
+        }
+      } catch (err) {
+        console.error("AI Forecast Error:", err);
+
+        if (!cancelled) {
+          setAiForecastInsight(
+            "Your forecast is calculated from upcoming invoice due dates. AI insights are temporarily unavailable."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setForecastLoading(false);
+        }
+      }
+    };
+
+    generateInsight();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    loading,
+    forecastPeriod,
+    forecastData.totalExpected,
+    forecastData.invoiceCount,
+    forecastData.overdueAmount,
+    invoices.length,
+  ]);
 
   const cardClass =
     "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-[#151c2e]";
@@ -224,7 +405,6 @@ export default function Analytics() {
 
   return (
     <div className="space-y-6">
-
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -263,7 +443,6 @@ export default function Analytics() {
         <>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
             <div className={cardClass}>
               <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -323,11 +502,169 @@ export default function Analytics() {
                 All created invoices
               </p>
             </div>
-
           </div>
 
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+          <section className={`${cardClass} space-y-5`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-500/15 flex items-center justify-center">
+                    <TrendingUp
+                      className="text-violet-600 dark:text-violet-300"
+                      size={19}
+                    />
+                  </div>
 
+                  <h2 className="font-semibold text-slate-900 dark:text-white">
+                    AI Cash Flow Forecast
+                  </h2>
+                </div>
+
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  Estimated collections based on upcoming unpaid invoices
+                </p>
+              </div>
+
+              <div className="flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-[#0f172a]">
+                {["7D", "30D"].map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => setForecastPeriod(item)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold ${forecastPeriod === item
+                        ? "bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-white"
+                        : "text-slate-500 dark:text-slate-400"
+                      }`}
+                  >
+                    {item === "7D" ? "7 Days" : "30 Days"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="rounded-xl bg-violet-50 dark:bg-violet-500/10 p-4">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Expected Collections
+                </p>
+
+                <h3 className="text-2xl font-bold text-violet-700 dark:text-violet-300 mt-2">
+                  {formatCurrency(forecastData.totalExpected)}
+                </h3>
+
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  From {forecastData.invoiceCount} upcoming invoice(s)
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-red-50 dark:bg-red-500/10 p-4">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Overdue Outstanding
+                </p>
+
+                <h3 className="text-2xl font-bold text-red-600 dark:text-red-300 mt-2">
+                  {formatCurrency(forecastData.overdueAmount)}
+                </h3>
+
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Not included in expected collections
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-slate-800 dark:text-white mb-1">
+                Expected Cash Inflow
+              </h3>
+
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                Invoice amounts grouped by their due dates
+              </p>
+
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={forecastData.buckets}>
+                    <defs>
+                      <linearGradient
+                        id="cashForecast"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="#94a3b8"
+                      opacity={0.2}
+                    />
+
+                    <XAxis
+                      dataKey="period"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    />
+
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: "#94a3b8" }}
+                      tickFormatter={(value) => `$${value}`}
+                    />
+
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      formatter={(value) => formatCurrency(value)}
+                    />
+
+                    <Area
+                      type="monotone"
+                      dataKey="amount"
+                      name="Expected collections"
+                      stroke="#8b5cf6"
+                      strokeWidth={2.5}
+                      fill="url(#cashForecast)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-violet-200 dark:border-violet-500/20 bg-violet-50/70 dark:bg-violet-500/5 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles
+                  size={17}
+                  className="text-violet-600 dark:text-violet-300"
+                />
+
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                  AI Forecast Insight
+                </h3>
+              </div>
+
+              {forecastLoading ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                  <LoaderCircle size={15} className="animate-spin" />
+                  Analyzing your cash flow...
+                </div>
+              ) : (
+                <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">
+                  {aiForecastInsight || "No forecast insight available."}
+                </p>
+              )}
+            </div>
+
+            <p className="text-[11px] text-slate-400">
+              Forecasts are estimates based on unpaid invoice due dates, not guaranteed payments. Overdue invoices are excluded from expected collections.
+            </p>
+          </section>
+
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
             <div className={`${cardClass} xl:col-span-2`}>
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -344,11 +681,10 @@ export default function Analytics() {
                     <button
                       key={item}
                       onClick={() => setPeriod(item)}
-                      className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
-                        period === item
+                      className={`rounded-md px-3 py-1.5 text-xs font-semibold ${period === item
                           ? "bg-white text-indigo-600 shadow-sm dark:bg-slate-700 dark:text-white"
                           : "text-slate-500 dark:text-slate-400"
-                      }`}
+                        }`}
                     >
                       {item}
                     </button>
@@ -367,16 +703,8 @@ export default function Analytics() {
                         x2="0"
                         y2="1"
                       >
-                        <stop
-                          offset="0%"
-                          stopColor="#6366f1"
-                          stopOpacity={0.3}
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#6366f1"
-                          stopOpacity={0}
-                        />
+                        <stop offset="0%" stopColor="#6366f1" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                       </linearGradient>
                     </defs>
 
@@ -459,18 +787,9 @@ export default function Analytics() {
 
                   <div className="space-y-3">
                     {[
-                      {
-                        name: "Paid",
-                        value: paidInvoices.length,
-                      },
-                      {
-                        name: "Pending",
-                        value: pendingInvoices.length,
-                      },
-                      {
-                        name: "Overdue",
-                        value: overdueInvoices.length,
-                      },
+                      { name: "Paid", value: paidInvoices.length },
+                      { name: "Pending", value: pendingInvoices.length },
+                      { name: "Overdue", value: overdueInvoices.length },
                     ].map((item) => (
                       <div
                         key={item.name}
@@ -498,7 +817,6 @@ export default function Analytics() {
           </div>
 
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-
             <div className={cardClass}>
               <h2 className="font-semibold text-slate-900 dark:text-white">
                 Transaction Trends

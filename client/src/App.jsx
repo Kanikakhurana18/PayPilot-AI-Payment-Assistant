@@ -9,34 +9,56 @@ import Customers from "./pages/Customers";
 import Analytics from "./pages/Analytics";
 import AIAssistant from "./pages/AIAssistant";
 import Settings from "./pages/Settings";
+import PaymentRecovery from "./pages/PaymentRecovery";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { useAuth } from "./context/AuthContext";
 
-function PlaceholderPage({ title }) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-8">
-      <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-      <p className="text-gray-500 mt-2">
-        This section is being set up.
-      </p>
-    </div>
-  );
+function PublicRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+
+  return isAuthenticated ? <Navigate to="/" replace /> : children;
 }
 
 function App() {
   return (
-    <DashboardLayout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/invoices" element={<Invoices />} />
-        <Route path="/payments" element={<Payments />} />
-        <Route path="/payment/success" element={<PaymentSuccess />} />
-        <Route path="/payment/cancel" element={<PaymentCancel />} />
-        <Route path="/customers" element={<Customers />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/ai-assistant" element={<AIAssistant />} />
-        <Route path="/settings" element={<Settings/>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </DashboardLayout>
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/signup"
+        element={
+          <PublicRoute>
+            <Signup />
+          </PublicRoute>
+        }
+      />
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/cancel" element={<PaymentCancel />} />
+          <Route path="/customers" element={<Customers />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/payment-recovery" element={<PaymentRecovery />} />
+          <Route path="/ai-assistant" element={<AIAssistant />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import {
   ResponsiveContainer,
@@ -68,7 +67,6 @@ export default function RevenueChart({ payments = [] }) {
   return (
     <div className="bg-white dark:bg-[#11182B] border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-sm transition-colors duration-300">
 
-      {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
         <div>
           <h3 className="text-base font-bold text-slate-900 dark:text-white">
@@ -88,7 +86,6 @@ export default function RevenueChart({ payments = [] }) {
           </p>
         </div>
 
-        {/* Period Filter */}
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#1A2238] rounded-xl p-1">
           {["3M", "6M", "12M"].map((item) => (
             <button
@@ -106,7 +103,6 @@ export default function RevenueChart({ payments = [] }) {
         </div>
       </div>
 
-      {/* Chart */}
       <div className="h-64 sm:h-72 w-full">
         {payments.length === 0 ? (
           <div className="h-full flex items-center justify-center text-sm text-slate-400">

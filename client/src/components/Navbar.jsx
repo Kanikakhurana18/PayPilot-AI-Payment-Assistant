@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -16,34 +15,40 @@ import {
   RefreshCw,
   FileText,
   Menu,
-  PanelLeftClose,
-PanelLeftOpen,
+  LogOut,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const API = "http://localhost:8000/api";
 
-function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
+function Navbar({ darkMode, toggleTheme, onMenuClick }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
-
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [readNotificationIds, setReadNotificationIds] = useState([]);
-
   const navigate = useNavigate();
-
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
+  const searchRef = useRef(null);
+  const { user, logout } = useAuth();
 
-  // Close dropdowns on outside click
+  const handleLogout = () => {
+    logout();
+    setShowProfile(false);
+    navigate("/login", { replace: true });
+  };
+
   useEffect(() => {
     const handleOutsideClick = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target)
+      ) {
         setShowProfile(false);
       }
 
@@ -52,6 +57,13 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
         !notificationRef.current.contains(event.target)
       ) {
         setShowNotifications(false);
+      }
+
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target)
+      ) {
+        setSearchResults([]);
       }
     };
 
@@ -62,7 +74,6 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
     };
   }, []);
 
-  // Fetch actual business notifications
   const fetchNotifications = async () => {
     try {
       setNotificationsLoading(true);
@@ -115,7 +126,6 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
 
       setNotifications(allNotifications);
 
-      // Keep read state only for notifications that still exist
       setReadNotificationIds((previous) =>
         previous.filter((id) =>
           allNotifications.some((item) => item.id === id)
@@ -184,7 +194,6 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
     };
   };
 
-  // Search invoices, customers and payments
   const handleSearch = async (value) => {
     setSearchQuery(value);
 
@@ -260,21 +269,25 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
     }
   };
 
+  const getInitial = () =>
+    user?.name?.charAt(0)?.toUpperCase() || "K";
+
   return (
     <header className="relative z-40 flex min-h-16 flex-wrap items-center justify-between gap-3 bg-transparent px-3 py-3 sm:h-20 sm:flex-nowrap sm:px-5 sm:py-0 xl:px-8">
 
-      {/* MOBILE MENU BUTTON */}
-<button
-  type="button"
-  onClick={onMenuClick}
-  aria-label="Open navigation menu"
-  className="order-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm dark:border-slate-700 dark:bg-[#151c2e] dark:text-white lg:hidden"
->
-  <Menu size={20} />
-</button>
+      <button
+        type="button"
+        onClick={onMenuClick}
+        aria-label="Open navigation menu"
+        className="order-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm dark:border-slate-700 dark:bg-[#151c2e] dark:text-white lg:hidden"
+      >
+        <Menu size={20} />
+      </button>
 
-      {/* SEARCH */}
-      <div className="relative order-3 w-full max-w-none sm:order-none sm:flex-1 sm:max-w-2xl">
+      <div
+        ref={searchRef}
+        className="relative order-3 w-full max-w-none sm:order-0 sm:flex-1 sm:max-w-6xl"
+      >
         <div className="flex items-center gap-3 bg-white dark:bg-[#151c2e] border border-slate-200 dark:border-slate-800 rounded-2xl px-5 py-3 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/20">
           <Search size={19} className="text-slate-400 shrink-0" />
 
@@ -341,9 +354,8 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
         )}
       </div>
 
-      <div className="order-2 ml-auto flex shrink-0 items-center gap-2 sm:order-none sm:ml-0 sm:gap-3">
+      <div className="order-2 ml-auto flex shrink-0 items-center gap-2 sm:order-0 sm:ml-0 sm:gap-3">
 
-        {/* THEME TOGGLE */}
         <div className="flex items-center p-1 rounded-full bg-amber-100/60 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700">
           <button
             onClick={() => darkMode && toggleTheme()}
@@ -370,7 +382,6 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
           </button>
         </div>
 
-        {/* NOTIFICATIONS */}
         <div className="relative" ref={notificationRef}>
           <button
             onClick={() => {
@@ -390,9 +401,8 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 top-14 w-[340px] max-w-[calc(100vw-2rem)] bg-white dark:bg-[#151c2e] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden">
+            <div className="absolute right-0 top-14 w-85 max-w-[calc(100vw-2rem)] bg-white dark:bg-[#151c2e] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden">
 
-              {/* HEADER */}
               <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700">
                 <div>
                   <h3 className="font-semibold text-sm text-slate-900 dark:text-white">
@@ -427,9 +437,7 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
                 </div>
               </div>
 
-              {/* NOTIFICATION LIST */}
-              <div className="max-h-[360px] overflow-y-auto">
-
+              <div className="max-h-90 overflow-y-auto">
                 {notificationsLoading ? (
                   <div className="p-8 text-center">
                     <RefreshCw
@@ -473,7 +481,7 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
                             )}
                           </div>
 
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 break-words">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 wrap-break-word">
                             {item.description}
                           </p>
 
@@ -510,7 +518,6 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
                 )}
               </div>
 
-              {/* FOOTER */}
               <div className="p-3 border-t border-slate-100 dark:border-slate-700 text-center">
                 <button
                   onClick={() => {
@@ -526,7 +533,6 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
           )}
         </div>
 
-        {/* PROFILE */}
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => {
@@ -536,15 +542,15 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
             className="flex items-center gap-2 sm:gap-3 p-1.5 sm:pl-2 bg-white dark:bg-[#151c2e] border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm hover:border-indigo-300 transition"
           >
             <div className="w-9 h-9 rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center font-bold text-sm">
-              K
+              {getInitial()}
             </div>
 
             <div className="hidden sm:block text-left">
               <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                Account
+                {user?.name || "Account"}
               </p>
               <p className="text-[11px] text-slate-400">
-                Workspace Owner
+                {user?.businessName || "Workspace Owner"}
               </p>
             </div>
 
@@ -552,40 +558,46 @@ function Navbar({ darkMode, toggleTheme ,onMenuClick, }) {
           </button>
 
           {showProfile && (
-  <div className="absolute right-0 top-14 z-50 h-48 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-[#151c2e]">
+            <div className="absolute right-0 top-14 z-50 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-[#151c2e]">
 
-    {/* HEADER */}
-    <div className="border-b border-slate-100 px-3 py-3 dark:border-slate-700">
-      <p className="text-sm font-semibold text-slate-900 dark:text-white">
-        PayPilot Account
-      </p>
-      <p className="mt-1 text-xs text-slate-400">
-        Workspace Owner
-      </p>
-    </div>
+              <div className="border-b border-slate-100 px-3 py-3 dark:border-slate-700">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                  {user?.name || "PayPilot Account"}
+                </p>
+                <p className="mt-1 truncate text-xs text-slate-400">
+                  {user?.email || "Workspace Owner"}
+                </p>
+              </div>
 
-    {/* MY PROFILE */}
-    <Link
-      to="/settings"
-      onClick={() => setShowProfile(false)}
-      className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-    >
-      <User size={17} />
-      My Profile
-    </Link>
+              <Link
+                to="/settings"
+                onClick={() => setShowProfile(false)}
+                className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <User size={17} />
+                My Profile
+              </Link>
 
-    {/* SETTINGS - BOTTOM */}
-    <Link
-      to="/settings"
-      onClick={() => setShowProfile(false)}
-      className="absolute bottom-2 left-2 right-2 flex items-center gap-3 rounded-xl border-t border-slate-100 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-    >
-      <Settings size={17} />
-      Settings
-    </Link>
+              <Link
+                to="/settings"
+                onClick={() => setShowProfile(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                <Settings size={17} />
+                Settings
+              </Link>
 
-  </div>
-)}
+              <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+              >
+                <LogOut size={17} />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

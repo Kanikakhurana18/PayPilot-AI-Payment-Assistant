@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 const getPayPalAccessToken = async () => {
@@ -15,7 +14,7 @@ const getPayPalAccessToken = async () => {
       },
     }
   );
-
+  
   return response.data.access_token;
 };
 
