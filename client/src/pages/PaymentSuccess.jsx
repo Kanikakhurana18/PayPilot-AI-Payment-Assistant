@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
 import { CheckCircle2, LoaderCircle, AlertCircle, ArrowLeft } from "lucide-react";
+import API_URL from "../config/api";
 
 function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -24,7 +25,7 @@ function PaymentSuccess() {
 
       try {
         const { data } = await axios.post(
-          "http://localhost:8000/api/payments/capture-order",
+          `${API_URL}/payments/capture-order`,
           { orderId }
         );
 

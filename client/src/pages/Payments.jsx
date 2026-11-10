@@ -4,8 +4,7 @@ import {
   CheckCircle2, Clock3, Wallet, Receipt,
   CalendarDays, AlertCircle, X, ArrowUpRight
 } from "lucide-react";
-
-const API_URL = "http://localhost:8000/api";
+import API_URL from "../config/api";
 
 const getAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("paypilot-token")}`,

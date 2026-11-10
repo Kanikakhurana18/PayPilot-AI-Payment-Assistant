@@ -24,8 +24,7 @@ import {
   Sparkles,
   LoaderCircle,
 } from "lucide-react";
-
-const API_URL = "http://localhost:8000/api";
+import API from "../config/api";
 
 const formatCurrency = (amount) =>
   new Intl.NumberFormat("en-US", {
@@ -56,8 +55,8 @@ export default function Analytics() {
       setError("");
 
       const [invoiceRes, paymentRes] = await Promise.all([
-        axios.get(`${API_URL}/invoices`),
-        axios.get(`${API_URL}/payments`),
+        axios.get(`${API}/invoices`),
+        axios.get(`${API}/payments`),
       ]);
 
       const invoiceData =
@@ -345,7 +344,7 @@ export default function Analytics() {
       setAiForecastInsight("");
 
       try {
-        const response = await axios.post(`${API_URL}/ai/chat`, {
+        const response = await axios.post(`${API}/ai/chat`, {
           message: `Analyze this cash flow forecast for the next ${forecastPeriod === "7D" ? "7 days" : "30 days"
             }.
 

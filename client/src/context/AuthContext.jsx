@@ -1,12 +1,10 @@
 import { createContext, useContext, useState } from "react";
 import axios from "axios";
+import API_URL from "../config/api";
 
 const AuthContext = createContext(null);
 
-const API_URL = "http://localhost:8000/api";
-
 const savedToken = localStorage.getItem("paypilot-token");
-
 if (savedToken) {
   axios.defaults.headers.common["Authorization"] = `Bearer ${savedToken}`;
 } else {

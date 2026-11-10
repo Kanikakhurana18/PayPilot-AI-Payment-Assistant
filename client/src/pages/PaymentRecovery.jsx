@@ -12,8 +12,7 @@ import {
   CalendarClock,
   CheckCircle2,
 } from "lucide-react";
-
-const API_URL = "http://localhost:8000/api";
+import API_URL from "../config/api";
 
 function formatMoney(amount = 0) {
   return new Intl.NumberFormat("en-US", {

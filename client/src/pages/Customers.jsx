@@ -4,8 +4,7 @@ import {
   Users, UserPlus, Search, Mail, Phone, Building2, MapPin,
   X, RefreshCw, AlertCircle, Pencil, Trash2
 } from "lucide-react";
-
-const API_URL = "http://localhost:8000/api";
+import API from "../config/api";
 
 const emptyForm = {
   name: "",
@@ -30,7 +29,7 @@ export default function Customers() {
     try {
       setLoading(true);
       setError("");
-      const res = await axios.get(`${API_URL}/customers`);
+      const res = await axios.get(`${API}/customers`);
       setCustomers(res.data.customers || res.data);
     } catch {
       setError("Unable to load customers. Please try again.");
@@ -88,11 +87,11 @@ export default function Customers() {
 
       if (editingCustomer) {
         await axios.put(
-          `${API_URL}/customers/${editingCustomer._id}`,
+          `${API}/customers/${editingCustomer._id}`,
           form
         );
       } else {
-        await axios.post(`${API_URL}/customers`, form);
+        await axios.post(`${API}/customers`, form);
       }
 
       setShowModal(false);
@@ -120,7 +119,7 @@ export default function Customers() {
       setDeletingId(customer._id);
       setError("");
 
-      await axios.delete(`${API_URL}/customers/${customer._id}`);
+      await axios.delete(`${API}/customers/${customer._id}`);
 
       setCustomers((prev) =>
         prev.filter((item) => item._id !== customer._id)

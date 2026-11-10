@@ -16,12 +16,10 @@ import {
   Copy,
   LoaderCircle,
 } from "lucide-react";
-
 import StatCard from "../components/StatCard";
 import RevenueChart from "../components/RevenueChart";
 import PaymentStatusChart from "../components/PaymentStatusChart";
-
-const API = "http://localhost:8000/api";
+import API from "../config/api";
 
 const getArray = (data, key) => {
   if (Array.isArray(data)) return data;

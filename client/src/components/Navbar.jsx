@@ -19,10 +19,14 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-
-const API = "http://localhost:8000/api";
+import API from "../config/api";
 
 function Navbar({ darkMode, toggleTheme, onMenuClick }) {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const storageKey = `paypilot-read-notifications-${user?._id || user?.id || "default"}`;
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,12 +34,18 @@ function Navbar({ darkMode, toggleTheme, onMenuClick }) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
-  const [readNotificationIds, setReadNotificationIds] = useState([]);
-  const navigate = useNavigate();
+
+  const [readNotificationIds, setReadNotificationIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(storageKey)) || [];
+    } catch {
+      return [];
+    }
+  });
+
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
   const searchRef = useRef(null);
-  const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -84,6 +94,7 @@ function Navbar({ darkMode, toggleTheme, onMenuClick }) {
       ]);
 
       const reminders = reminderRes.data?.reminders || [];
+
       const payments =
         paymentRes.data?.payments || paymentRes.data || [];
 
@@ -124,11 +135,15 @@ function Navbar({ darkMode, toggleTheme, onMenuClick }) {
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 8);
 
-      setNotifications(allNotifications);
+      const savedReadIds = JSON.parse(
+        localStorage.getItem(storageKey) || "[]"
+      );
 
-      setReadNotificationIds((previous) =>
-        previous.filter((id) =>
-          allNotifications.some((item) => item.id === id)
+      setReadNotificationIds(savedReadIds);
+
+      setNotifications(
+        allNotifications.filter(
+          (item) => !savedReadIds.includes(item.id)
         )
       );
     } catch (error) {
@@ -141,21 +156,35 @@ function Navbar({ darkMode, toggleTheme, onMenuClick }) {
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [storageKey]);
 
-  const unreadCount = notifications.filter(
-    (item) => !readNotificationIds.includes(item.id)
-  ).length;
+  const unreadCount = notifications.length;
 
   const markAllAsRead = () => {
-    setReadNotificationIds(notifications.map((item) => item.id));
+    const updatedIds = [
+      ...new Set([
+        ...readNotificationIds,
+        ...notifications.map((item) => item.id),
+      ]),
+    ];
+
+    localStorage.setItem(storageKey, JSON.stringify(updatedIds));
+
+    setReadNotificationIds(updatedIds);
+    setNotifications([]);
   };
 
   const openNotification = (item) => {
-    setReadNotificationIds((previous) =>
-      previous.includes(item.id)
-        ? previous
-        : [...previous, item.id]
+    const updatedIds = [
+      ...new Set([...readNotificationIds, item.id]),
+    ];
+
+    localStorage.setItem(storageKey, JSON.stringify(updatedIds));
+
+    setReadNotificationIds(updatedIds);
+
+    setNotifications((previous) =>
+      previous.filter((notification) => notification.id !== item.id)
     );
 
     setShowNotifications(false);
@@ -452,17 +481,12 @@ function Navbar({ darkMode, toggleTheme, onMenuClick }) {
                   notifications.map((item) => {
                     const style = getNotificationStyle(item.type);
                     const Icon = style.icon;
-                    const isRead = readNotificationIds.includes(item.id);
 
                     return (
                       <button
                         key={item.id}
                         onClick={() => openNotification(item)}
-                        className={`w-full flex gap-3 text-left p-4 border-b border-slate-100 dark:border-slate-800 last:border-0 transition hover:bg-slate-50 dark:hover:bg-slate-800/70 ${
-                          !isRead
-                            ? "bg-indigo-50/40 dark:bg-indigo-500/5"
-                            : ""
-                        }`}
+                        className="w-full flex gap-3 text-left p-4 border-b border-slate-100 dark:border-slate-800 last:border-0 transition hover:bg-slate-50 dark:hover:bg-slate-800/70 bg-indigo-50/40 dark:bg-indigo-500/5"
                       >
                         <div
                           className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${style.background}`}
@@ -471,15 +495,9 @@ function Navbar({ darkMode, toggleTheme, onMenuClick }) {
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                              {item.title}
-                            </p>
-
-                            {!isRead && (
-                              <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                            )}
-                          </div>
+                          <p className="text-sm font-semibold text-slate-800 dark:text-white">
+                            {item.title}
+                          </p>
 
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 wrap-break-word">
                             {item.description}

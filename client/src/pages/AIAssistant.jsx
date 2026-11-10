@@ -12,10 +12,8 @@ import {
   LoaderCircle,
   ArrowUpRight,
 } from "lucide-react";
-
 import robotImg from "../assets/robot.png";
-
-const API_URL = "http://localhost:8000/api";
+import API from "../config/api";
 
 const suggestions = [
   {
@@ -60,7 +58,6 @@ function MessageContent({ content = "" }) {
 
         const isBullet = /^[-*•]\s/.test(trimmed);
         const isNumbered = /^\d+[.)]\s/.test(trimmed);
-
         const text = trimmed
           .replace(/^[-*•]\s/, "")
           .replace(/^\d+[.)]\s/, "")
@@ -120,7 +117,7 @@ export default function AIAssistant() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/ai/chat`, { message });
+      const response = await axios.post(`${API}/ai/chat`, { message });
 
       const reply =
         response.data.reply ||
@@ -212,7 +209,7 @@ export default function AIAssistant() {
               </span>
             </div>
 
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white text-center">
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white text-center">
               Hey there! I'm PayPilot AI
             </h2>
 
