@@ -1,22 +1,92 @@
-# PayPilot – AI-Powered Payment Assistant
+# PayPilot <img src="client/public/favicon.png" width="25" alt="PayPilot Logo" />
 
-PayPilot is an AI-powered payment management platform designed to help small businesses and freelancers manage invoices, track payments, monitor cash flow, and recover pending payments more efficiently.
+<div align="center">
 
-It combines payment management with AI-driven insights and intelligent payment reminders to simplify everyday financial operations.
+### AI-Powered Payment Recovery Assistant
+
+**Smarter payments. Stronger business.**
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Explore%20PayPilot-635BFF?style=for-the-badge)](https://pay-pilot-ai-payment-assistant.vercel.app/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/Kanikakhurana18/PayPilot-AI-Payment-Assistant)
+[![MIT License](https://img.shields.io/badge/License-MIT-16A34A?style=for-the-badge)](LICENSE)
+
+</div>
+
+---
+
+## About PayPilot
+
+PayPilot is an AI-powered payment management and recovery platform designed for freelancers and small businesses. It helps business owners manage invoices, collect payments through PayPal, monitor cash flow, and make smarter payment decisions with AI-powered insights.
+
+**Live Demo:** [Explore PayPilot](https://pay-pilot-ai-payment-assistant.vercel.app/)
+
+**GitHub Repository:** [View Source Code](https://github.com/Kanikakhurana18/PayPilot-AI-Payment-Assistant)
+
+
+## Application Preview
+
+PayPilot provides a modern and responsive interface with **both Light Mode and Dark Mode**, allowing users to choose their preferred visual experience.
+
+### Dark Mode
+
+<img src="screenshots/dark-dashboard.png" width="100%" alt="PayPilot Dashboard - Dark Mode" />
+
+### Light Mode
+
+<img src="screenshots/light-dashboard.png" width="100%" alt="PayPilot Dashboard - Light Mode" />
+
+---
+
+## Authentication
+
+### Login
+<img src="screenshots/login.png" width="100%" alt="PayPilot Login" />
+
+### Sign Up
+<img src="screenshots/signup.png" width="100%" alt="PayPilot Signup" />
+
+## Problem
+
+Small businesses and freelancers often struggle with delayed payments, unpaid invoices, manual payment follow-ups, and limited visibility into their cash flow.
+
+PayPilot aims to simplify this process by combining payment management, PayPal integration, and AI-powered assistance in one platform.
 
 ## Key Features
 
-- **Business Dashboard:** View revenue, successful payments, pending invoices, and recent transactions.
-- **Customer Management:** Create, view, update, and manage customer records.
-- **Invoice Management:** Generate and track invoices with payment statuses and due dates.
-- **PayPal Integration:** Create PayPal checkout orders and capture payments using PayPal Sandbox.
-- **AI Business Insights:** Get AI-generated insights based on business payment activity.
-- **AI Assistant:** Ask questions about invoices, payments, and business performance.
-- **AI Payment Reminders:** Generate personalized payment reminder messages.
-- **Payment Recovery Copilot:** Get AI-powered recommendations for following up on outstanding invoices.
-- **Analytics:** Visualize revenue and payment trends.
-- **Authentication:** Secure signup, login, and user-specific business data.
-- **Responsive UI:** Access the dashboard on desktop and mobile devices.
+- **Dashboard:** View revenue, successful payments, pending invoices, and overall business activity.
+- **Invoice Management:** Create, update, track, and manage customer invoices.
+- **PayPal Integration:** Create PayPal payment orders and process payments using PayPal Sandbox.
+- **Customer Management:** Maintain customer information and manage customer records.
+- **AI Business Insights:** Get AI-generated insights based on business payment data.
+- **AI Payment Reminders:** Generate payment reminders to help follow up on pending invoices.
+- **Payment Recovery Copilot:** Monitor outstanding payments and get AI-assisted recovery suggestions.
+- **Cash Flow Analytics:** Visualize payment trends and business cash flow.
+- **AI Assistant:** Ask questions about payments, invoices, and business performance.
+- **Authentication:** Secure user registration and login with user-specific data.
+- **Light & Dark Mode:** Switch between light and dark themes.
+- **Responsive UI:** Access PayPilot across desktop and mobile devices.
+
+## Screenshots
+
+### Invoice Management
+
+<img src="screenshots/invoices.png" width="100%" alt="Invoice Management" />
+
+### Payments
+
+<img src="screenshots/payments.png" width="100%" alt="PayPal Payments" />
+
+### AI Assistant
+
+<img src="screenshots/ai-assistant.png" width="100%" alt="PayPilot AI Assistant" />
+
+### Analytics
+
+<img src="screenshots/analytics.png" width="100%" alt="Cash Flow Analytics" />
+
+### Payment Recovery Copilot
+
+<img src="screenshots/recovery-copilot.png" width="100%" alt="Payment Recovery Copilot" />
 
 ## Tech Stack
 
@@ -34,37 +104,36 @@ It combines payment management with AI-driven insights and intelligent payment r
 - Express.js
 - MongoDB Atlas
 - Mongoose
-- JWT Authentication
+- JSON Web Tokens (JWT)
 - bcryptjs
 
 **AI Integration**
 - OpenRouter API
-- OpenAI GPT-4o-mini model
+- OpenAI GPT-4o-mini
 
 **Payment Integration**
 - PayPal REST API
 - PayPal Sandbox
 
-## Project Structure
+**Deployment**
+- Frontend: Vercel
+- Backend: Render
+- Database: MongoDB Atlas
+
+## Architecture
 
 ```text
-PayPilot/
-├── client/              # React frontend
-│   └── src/
-│       ├── components/
-│       ├── pages/
-│       ├── context/
-│       └── assets/
-│
-├── server/              # Express backend
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   └── services/
-│
-└── README.md
+React + Vite Frontend
+        |
+        | REST API
+        v
+Node.js + Express Backend
+        |
+        +------ MongoDB Atlas
+        |
+        +------ OpenRouter AI
+        |
+        +------ PayPal REST API
 ```
 
 ## Getting Started
@@ -73,18 +142,17 @@ PayPilot/
 
 - Node.js and npm
 - MongoDB Atlas account
-- PayPal Developer Sandbox account
 - OpenRouter API key
+- PayPal Developer account with Sandbox credentials
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Kanikakhurana18/PayPilot-AI-Payment-Assistant.git
-
 cd PayPilot-AI-Payment-Assistant
 ```
 
-### 2. Setup the backend
+### 2. Set Up the Backend
 
 ```bash
 cd server
@@ -101,6 +169,7 @@ PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id
 PAYPAL_CLIENT_SECRET=your_paypal_sandbox_client_secret
 PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
 OPENROUTER_API_KEY=your_openrouter_api_key
+FRONTEND_URL=http://localhost:5173
 ```
 
 Start the backend:
@@ -109,69 +178,61 @@ Start the backend:
 npm run dev
 ```
 
-The backend runs at:
-
-`http://localhost:8000`
-
-### 3. Setup the frontend
+### 3. Set Up the Frontend
 
 Open another terminal:
 
 ```bash
 cd client
 npm install
+```
+
+Create a `.env` file inside the `client` directory:
+
+```env
+VITE_API_URL=http://localhost:8000/api
+```
+
+Start the frontend:
+
+```bash
 npm run dev
 ```
 
-Open the local Vite URL shown in your terminal, usually:
+Open the local URL displayed by Vite, usually:
 
-`http://localhost:5173`
+```text
+http://localhost:5173
+```
 
-## AI Implementation
+## Payment Testing
 
-PayPilot uses the OpenRouter API with the `openai/gpt-4o-mini` model.
+PayPilot uses PayPal Sandbox for testing payment workflows.
 
-AI capabilities include:
+Use PayPal Sandbox test accounts created through the PayPal Developer Dashboard. Sandbox transactions do not represent real payments.
 
-- Business payment insights based on invoice and payment records.
-- Conversational assistance for business payment-related questions.
-- Personalized payment reminder generation.
-- Recommendations for recovering outstanding payments.
+## Security Notes
 
-The backend retrieves business data for the authenticated user and uses relevant information as context for AI responses.
+- Never commit `.env` files or expose API keys and secrets.
+- Use Sandbox credentials for payment testing.
+- Keep PayPal and AI API credentials on the backend.
+- Authentication and user-specific data access are handled by the backend.
 
-## PayPal Integration
+## Future Scope
 
-PayPilot integrates PayPal REST APIs for payment processing.
+- Automated payment follow-up scheduling.
+- More advanced payment risk analysis.
+- Additional payment gateway integrations.
+- Improved AI-driven cash flow recommendations.
 
-The application creates PayPal checkout orders, redirects users to the PayPal Sandbox approval page, and captures approved payments through the backend.
+## License
 
-**Note:** The current integration uses PayPal Sandbox for testing and demonstration purposes. It does not process live payments.
-
-## Security
-
-- Password hashing using bcryptjs.
-- JWT-based authentication.
-- Protected API routes.
-- User-specific customer, invoice, payment, and AI data access.
-- API credentials stored in environment variables.
-
-## Future Improvements
-
-- Live payment processing.
-- Automated payment follow-ups.
-- Advanced cash-flow forecasting.
-- More detailed financial analytics.
-- Additional business integrations.
-
-## Author
-
-**Kanika Khurana**
-
-GitHub: https://github.com/Kanikakhurana18
-
-LinkedIn: https://www.linkedin.com/in/kanikakhurana18/
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-Built for the PayPal AI Hackathon 2026.
+<div align="center">
+
+**Built for the PayPal AI Hackathon 2026.**
+
+</div>
