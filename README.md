@@ -115,6 +115,11 @@ PayPilot aims to simplify this process by combining payment management, PayPal i
 - PayPal REST API
 - PayPal Sandbox
 
+### Testing & Deployment
+
+**API Testing**
+- Postman – Used to test backend REST API endpoints, validate requests and responses, and debug API integrations.
+
 **Deployment**
 - Frontend: Vercel
 - Backend: Render
